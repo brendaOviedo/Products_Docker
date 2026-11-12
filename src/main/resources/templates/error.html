@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Error')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('')}"></header>
+
+<main class="contenedor principal principal--angosto">
+    <section class="tarjeta error-pagina">
+        <span class="error-pagina__codigo" th:text="${codigo != null ? codigo : (status != null ? status : 'Error')}">404</span>
+        <h1 class="error-pagina__titulo" th:text="${titulo != null ? titulo : 'Algo salió mal'}">Algo salió mal</h1>
+        <p class="error-pagina__mensaje" th:text="${mensaje != null ? mensaje : 'No fue posible procesar la solicitud.'}">Mensaje</p>
+        <a th:href="@{/productos}" class="boton boton--primario">Volver al inicio</a>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

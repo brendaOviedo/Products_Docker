@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Productos')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('productos')}"></header>
+
+<main class="contenedor principal">
+    <section class="encabezado">
+        <div>
+            <h1 class="encabezado__titulo">Productos</h1>
+            <p class="encabezado__descripcion">Consulta, registra y administra el inventario de la tienda.</p>
+        </div>
+        <a th:href="@{/productos/nuevo}" class="boton boton--primario">
+            <span aria-hidden="true">+</span> Nuevo producto
+        </a>
+    </section>
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <section class="indicadores" aria-label="Resumen del inventario">
+        <article class="indicador">
+            <span class="indicador__etiqueta">Productos activos</span>
+            <strong class="indicador__valor" th:text="${resumen.activos}">0</strong>
+        </article>
+        <article class="indicador indicador--alerta">
+            <span class="indicador__etiqueta" th:text="'Bajo stock (≤ ' + ${umbralBajoStock} + ')'">Bajo stock</span>
+            <strong class="indicador__valor" th:text="${resumen.bajoStock}">0</strong>
+        </article>
+        <article class="indicador indicador--neutro">
+            <span class="indicador__etiqueta">Inactivos</span>
+            <strong class="indicador__valor" th:text="${resumen.inactivos}">0</strong>
+        </article>
+    </section>
+
+    <section class="tarjeta">
+        <form th:action="@{/productos}" method="get" class="filtros" role="search">
+            <div class="campo campo--crece">
+                <label for="nombre" class="campo__etiqueta">Buscar por nombre</label>
+                <input type="search" id="nombre" name="nombre" class="campo__control" th:value="${nombre}"
+                       placeholder="Ej. Laptop, café, camisa..." autocomplete="off">
+            </div>
+            <div class="campo">
+                <label for="categoriaId" class="campo__etiqueta">Categoría</label>
+                <select id="categoriaId" name="categoriaId" class="campo__control">
+                    <option value="">Todas</option>
+                    <option th:each="c : ${categorias}" th:value="${c.id}"
+                            th:text="${c.activa} ? ${c.nombre} : ${c.nombre} + ' (inactiva)'"
+                            th:selected="${categoriaId != null and categoriaId == c.id}">Categoría</option>
+                </select>
+            </div>
+            <div class="campo">
+                <label for="estado" class="campo__etiqueta">Estado</label>
+                <select id="estado" name="estado" class="campo__control">
+                    <option value="TODOS" th:selected="${estado == 'TODOS'}">Todos</option>
+                    <option value="ACTIVO" th:selected="${estado == 'ACTIVO'}">Activos</option>
+                    <option value="INACTIVO" th:selected="${estado == 'INACTIVO'}">Inactivos</option>
+                </select>
+            </div>
+            <div class="filtros__acciones">
+                <button type="submit" class="boton boton--primario">Filtrar</button>
+                <a th:if="${hayFiltros}" th:href="@{/productos}" class="boton boton--secundario">Limpiar</a>
+            </div>
+        </form>
+
+        <div th:if="${#lists.isEmpty(productos)}" class="vacio">
+            <p class="vacio__titulo">No se encontraron productos</p>
+            <p class="vacio__texto" th:if="${hayFiltros}">Prueba con otros filtros o límpialos para ver todo el inventario.</p>
+            <p class="vacio__texto" th:unless="${hayFiltros}">Aún no hay productos registrados.</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(productos)}" class="tabla-responsiva">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th class="alinear-derecha">Precio</th>
+                    <th class="alinear-centro">Stock</th>
+                    <th>Estado</th>
+                    <th>Creado</th>
+                    <th class="alinear-derecha">Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${productos}"
+                    th:classappend="${!p.activo} ? 'fila--inactiva' : (${p.bajoStock} ? 'fila--alerta' : '')">
+                    <td data-label="Nombre" class="celda-nombre" th:text="${p.nombre}">Producto</td>
+                    <td data-label="Categoría">
+                        <span class="chip" th:text="${p.categoria.nombre}">Categoría</span>
+                    </td>
+                    <td data-label="Precio" class="alinear-derecha numero"
+                        th:text="'Q ' + ${#numbers.formatDecimal(p.precio, 1, 'COMMA', 2, 'POINT')}">Q 0.00</td>
+                    <td data-label="Stock" class="alinear-centro">
+                        <div class="stock">
+                            <span class="numero" th:text="${p.stock}">0</span>
+                            <span th:if="${p.bajoStock}" class="etiqueta"
+                                  th:classappend="${p.sinStock} ? 'etiqueta--peligro' : 'etiqueta--advertencia'"
+                                  th:title="${p.sinStock} ? 'Producto agotado' : 'Quedan pocas unidades'">Bajo Stock</span>
+                        </div>
+                    </td>
+                    <td data-label="Estado">
+                        <span class="estado" th:classappend="${p.activo} ? 'estado--activo' : 'estado--inactivo'"
+                              th:text="${p.estado.etiqueta}">Activo</span>
+                    </td>
+                    <td data-label="Creado" class="texto-tenue"
+                        th:text="${#temporals.format(p.fechaCreacion, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                    <td data-label="Acciones" class="alinear-derecha">
+                        <div class="acciones">
+                            <a th:href="@{/productos/{id}/editar(id=${p.id})}" class="boton boton--mini boton--secundario">Editar</a>
+                            <form th:if="${p.activo}" th:action="@{/productos/{id}/inactivar(id=${p.id})}" method="post"
+                                  th:data-confirmar="|¿Dar de baja el producto «${p.nombre}»? Podrás activarlo nuevamente.|">
+                                <input type="hidden" name="nombre" th:value="${nombre}">
+                                <input type="hidden" name="categoriaId" th:value="${categoriaId}">
+                                <input type="hidden" name="estado" th:value="${estado}">
+                                <button type="submit" class="boton boton--mini boton--peligro">Dar de baja</button>
+                            </form>
+                            <form th:unless="${p.activo}" th:action="@{/productos/{id}/activar(id=${p.id})}" method="post">
+                                <input type="hidden" name="nombre" th:value="${nombre}">
+                                <input type="hidden" name="categoriaId" th:value="${categoriaId}">
+                                <input type="hidden" name="estado" th:value="${estado}">
+                                <button type="submit" class="boton boton--mini boton--exito">Activar</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p th:unless="${#lists.isEmpty(productos)}" class="tabla-pie"
+           th:text="${#lists.size(productos)} + ' producto(s) encontrado(s)'">0 productos</p>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

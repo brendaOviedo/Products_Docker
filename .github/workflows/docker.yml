@@ -1,0 +1,42 @@
+name: Docker Compose
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  levantar-y-probar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Construir y levantar contenedores
+        run: docker compose up -d --build --wait --wait-timeout 300
+
+      - name: Estado de los contenedores
+        run: docker compose ps
+
+      - name: Verificar listado de productos
+        run: |
+          curl -fsS http://localhost:8080/productos -o productos.html
+          grep -q "Bajo Stock" productos.html
+          grep -q "Laptop Lenovo" productos.html
+
+      - name: Verificar categorias
+        run: curl -fsS http://localhost:8080/categorias | grep -q "Electrónica"
+
+      - name: Verificar regla de negocio de categorias
+        run: |
+          curl -fsS -c cookies.txt -b cookies.txt -X POST http://localhost:8080/categorias/1/inactivar -L -o respuesta.html
+          grep -q "No se puede dar de baja" respuesta.html
+
+      - name: Logs de la aplicacion
+        if: always()
+        run: docker compose logs --no-color app db
+
+      - name: Detener contenedores
+        if: always()
+        run: docker compose down -v

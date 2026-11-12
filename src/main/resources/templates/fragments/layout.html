@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} + ' · Inventario'">Inventario</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232563eb'/%3E%3Cpath d='M6 9l6-3 6 3v6l-6 3-6-3z' fill='none' stroke='white' stroke-width='1.6'/%3E%3C/svg%3E">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+
+<header th:fragment="navbar(seccion)" class="navbar">
+    <div class="contenedor navbar__contenido">
+        <a th:href="@{/productos}" class="marca">
+            <span class="marca__icono" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 8l8-4 8 4v8l-8 4-8-4z M4 8l8 4 8-4 M12 12v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="marca__texto">Inventario<span class="marca__sub">Gestión de productos</span></span>
+        </a>
+        <nav class="menu" aria-label="Navegación principal">
+            <a th:href="@{/productos}" class="menu__enlace" th:classappend="${seccion == 'productos'} ? 'menu__enlace--activo'">Productos</a>
+            <a th:href="@{/categorias}" class="menu__enlace" th:classappend="${seccion == 'categorias'} ? 'menu__enlace--activo'">Categorías</a>
+        </nav>
+    </div>
+</header>
+
+<div th:fragment="alertas" class="alertas">
+    <div th:if="${exito}" class="alerta alerta--exito" role="status">
+        <span class="alerta__icono" aria-hidden="true">✓</span>
+        <span th:text="${exito}">Operación exitosa</span>
+    </div>
+    <div th:if="${error}" class="alerta alerta--error" role="alert">
+        <span class="alerta__icono" aria-hidden="true">!</span>
+        <span th:text="${error}">Ocurrió un error</span>
+    </div>
+</div>
+
+<footer th:fragment="pie" class="pie">
+    <div class="contenedor pie__contenido">
+        <span>Sistema de Gestión de Productos e Inventario</span>
+        <span>Spring Boot · MySQL</span>
+    </div>
+</footer>
+
+</body>
+</html>

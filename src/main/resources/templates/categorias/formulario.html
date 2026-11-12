@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${esEdicion} ? 'Editar categoría' : 'Nueva categoría')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('categorias')}"></header>
+
+<main class="contenedor principal principal--angosto">
+    <nav class="migas" aria-label="Ruta">
+        <a th:href="@{/categorias}">Categorías</a>
+        <span aria-hidden="true">/</span>
+        <span th:text="${esEdicion} ? 'Editar' : 'Nueva'">Nueva</span>
+    </nav>
+
+    <section class="encabezado">
+        <div>
+            <h1 class="encabezado__titulo" th:text="${esEdicion} ? 'Editar categoría' : 'Nueva categoría'">Nueva categoría</h1>
+            <p class="encabezado__descripcion" th:text="${esEdicion} ? 'Modifica el nombre de la categoría.' : 'Las categorías nuevas se crean en estado activo.'">Descripción</p>
+        </div>
+        <span th:if="${esEdicion}" class="estado"
+              th:classappend="${categoriaExistente.activa} ? 'estado--activo' : 'estado--inactivo'"
+              th:text="${categoriaExistente.estado.etiqueta}">Activo</span>
+    </section>
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <section class="tarjeta">
+        <form th:action="${esEdicion} ? @{/categorias/{id}(id=${categoria.id})} : @{/categorias}"
+              th:object="${categoria}" method="post" class="formulario" novalidate>
+            <div class="campo">
+                <label for="nombre" class="campo__etiqueta">Nombre <span class="requerido">*</span></label>
+                <input type="text" id="nombre" th:field="*{nombre}" class="campo__control"
+                       th:classappend="${#fields.hasErrors('nombre')} ? 'campo__control--error'"
+                       maxlength="100" placeholder="Ej. Electrónica" required autofocus>
+                <p class="campo__error" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}">Error</p>
+            </div>
+
+            <div class="formulario__acciones">
+                <a th:href="@{/categorias}" class="boton boton--secundario">Cancelar</a>
+                <button type="submit" class="boton boton--primario"
+                        th:text="${esEdicion} ? 'Guardar cambios' : 'Registrar categoría'">Guardar</button>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

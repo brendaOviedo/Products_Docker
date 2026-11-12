@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${esEdicion} ? 'Editar producto' : 'Nuevo producto')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('productos')}"></header>
+
+<main class="contenedor principal principal--angosto">
+    <nav class="migas" aria-label="Ruta">
+        <a th:href="@{/productos}">Productos</a>
+        <span aria-hidden="true">/</span>
+        <span th:text="${esEdicion} ? 'Editar' : 'Nuevo'">Nuevo</span>
+    </nav>
+
+    <section class="encabezado">
+        <div>
+            <h1 class="encabezado__titulo" th:text="${esEdicion} ? 'Editar producto' : 'Nuevo producto'">Nuevo producto</h1>
+            <p class="encabezado__descripcion" th:text="${esEdicion} ? 'Actualiza la información del producto seleccionado.' : 'Registra un producto y asígnale una categoría existente.'">Descripción</p>
+        </div>
+        <span th:if="${esEdicion}" class="estado"
+              th:classappend="${productoExistente.activo} ? 'estado--activo' : 'estado--inactivo'"
+              th:text="${productoExistente.estado.etiqueta}">Activo</span>
+    </section>
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <section class="tarjeta">
+        <div th:if="${#lists.isEmpty(categorias)}" class="alerta alerta--advertencia">
+            <span class="alerta__icono" aria-hidden="true">!</span>
+            <span>No hay categorías activas. <a th:href="@{/categorias/nuevo}">Crea una categoría</a> antes de registrar productos.</span>
+        </div>
+
+        <form th:action="${esEdicion} ? @{/productos/{id}(id=${producto.id})} : @{/productos}"
+              th:object="${producto}" method="post" class="formulario" novalidate>
+
+            <div class="campo">
+                <label for="nombre" class="campo__etiqueta">Nombre <span class="requerido">*</span></label>
+                <input type="text" id="nombre" th:field="*{nombre}" class="campo__control"
+                       th:classappend="${#fields.hasErrors('nombre')} ? 'campo__control--error'"
+                       maxlength="150" placeholder="Ej. Teclado mecánico RGB" required autofocus>
+                <p class="campo__error" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}">Error</p>
+            </div>
+
+            <div class="campo">
+                <label for="categoriaId" class="campo__etiqueta">Categoría <span class="requerido">*</span></label>
+                <select id="categoriaId" th:field="*{categoriaId}" class="campo__control"
+                        th:classappend="${#fields.hasErrors('categoriaId')} ? 'campo__control--error'" required>
+                    <option value="">Selecciona una categoría</option>
+                    <option th:each="c : ${categorias}" th:value="${c.id}"
+                            th:text="${c.activa} ? ${c.nombre} : ${c.nombre} + ' (inactiva)'">Categoría</option>
+                </select>
+                <p class="campo__error" th:if="${#fields.hasErrors('categoriaId')}" th:errors="*{categoriaId}">Error</p>
+            </div>
+
+            <div class="formulario__fila">
+                <div class="campo">
+                    <label for="precio" class="campo__etiqueta">Precio (Q) <span class="requerido">*</span></label>
+                    <input type="number" id="precio" th:field="*{precio}" class="campo__control"
+                           th:classappend="${#fields.hasErrors('precio')} ? 'campo__control--error'"
+                           step="0.01" min="0.01" placeholder="0.00" required>
+                    <p class="campo__ayuda" th:unless="${#fields.hasErrors('precio')}">Debe ser mayor a 0.</p>
+                    <p class="campo__error" th:if="${#fields.hasErrors('precio')}" th:errors="*{precio}">Error</p>
+                </div>
+
+                <div class="campo">
+                    <label for="stock" class="campo__etiqueta">Stock <span class="requerido">*</span></label>
+                    <input type="number" id="stock" th:field="*{stock}" class="campo__control"
+                           th:classappend="${#fields.hasErrors('stock')} ? 'campo__control--error'"
+                           step="1" min="0" placeholder="0" required>
+                    <p class="campo__ayuda" th:unless="${#fields.hasErrors('stock')}">No puede ser negativo. Con 5 o menos se marca como bajo stock.</p>
+                    <p class="campo__error" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}">Error</p>
+                </div>
+            </div>
+
+            <div class="formulario__acciones">
+                <a th:href="@{/productos}" class="boton boton--secundario">Cancelar</a>
+                <button type="submit" class="boton boton--primario"
+                        th:text="${esEdicion} ? 'Guardar cambios' : 'Registrar producto'">Guardar</button>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

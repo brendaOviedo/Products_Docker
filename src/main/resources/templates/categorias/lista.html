@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Categorías')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('categorias')}"></header>
+
+<main class="contenedor principal">
+    <section class="encabezado">
+        <div>
+            <h1 class="encabezado__titulo">Categorías</h1>
+            <p class="encabezado__descripcion">Administra las categorías disponibles para clasificar los productos.</p>
+        </div>
+        <a th:href="@{/categorias/nuevo}" class="boton boton--primario">
+            <span aria-hidden="true">+</span> Nueva categoría
+        </a>
+    </section>
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <section class="tarjeta">
+        <div th:if="${#lists.isEmpty(categorias)}" class="vacio">
+            <p class="vacio__titulo">No hay categorías registradas</p>
+            <p class="vacio__texto">Crea la primera categoría para empezar a registrar productos.</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(categorias)}" class="tabla-responsiva">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th class="alinear-centro">Productos activos</th>
+                    <th class="alinear-centro">Total productos</th>
+                    <th>Estado</th>
+                    <th>Creada</th>
+                    <th class="alinear-derecha">Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${categorias}" th:classappend="${!r.categoria.activa} ? 'fila--inactiva'">
+                    <td data-label="Nombre" class="celda-nombre" th:text="${r.categoria.nombre}">Categoría</td>
+                    <td data-label="Productos activos" class="alinear-centro numero" th:text="${r.productosActivos}">0</td>
+                    <td data-label="Total productos" class="alinear-centro numero" th:text="${r.productosTotales}">0</td>
+                    <td data-label="Estado">
+                        <span class="estado" th:classappend="${r.categoria.activa} ? 'estado--activo' : 'estado--inactivo'"
+                              th:text="${r.categoria.estado.etiqueta}">Activo</span>
+                    </td>
+                    <td data-label="Creada" class="texto-tenue"
+                        th:text="${#temporals.format(r.categoria.fechaCreacion, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                    <td data-label="Acciones" class="alinear-derecha">
+                        <div class="acciones">
+                            <a th:href="@{/categorias/{id}/editar(id=${r.categoria.id})}" class="boton boton--mini boton--secundario">Editar</a>
+                            <form th:if="${r.categoria.activa}" th:action="@{/categorias/{id}/inactivar(id=${r.categoria.id})}" method="post"
+                                  th:data-confirmar="|¿Dar de baja la categoría «${r.categoria.nombre}»? Podrás activarla nuevamente.|">
+                                <button type="submit" class="boton boton--mini boton--peligro"
+                                        th:title="${r.puedeInactivarse()} ? 'Cambiar estado a inactivo' : 'Tiene productos activos asociados'">Dar de baja</button>
+                            </form>
+                            <form th:unless="${r.categoria.activa}" th:action="@{/categorias/{id}/activar(id=${r.categoria.id})}" method="post">
+                                <button type="submit" class="boton boton--mini boton--exito">Activar</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="nota">
+            Una categoría solo puede darse de baja cuando no tiene productos activos asociados.
+            Los productos de una categoría inactiva no pueden activarse hasta que la categoría vuelva a estar activa.
+        </p>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
